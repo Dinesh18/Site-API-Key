@@ -1,0 +1,5 @@
+name = Site Information
+description = Adds a new field "Site API Key"
+core = 7.x
+
+

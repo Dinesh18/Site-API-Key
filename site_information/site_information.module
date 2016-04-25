@@ -1,0 +1,97 @@
+<?php
+
+/**
+ *Implements hook_menu
+ */
+
+function site_information_menu() {
+
+  $menu['page_json/%/%'] = array(
+      'title' => 'page node to Json',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('page_node_json'),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+  );
+  
+  return $menu;
+}
+
+/**
+ * Callback of page node to json
+ */
+function page_node_json() {
+
+// Returns a component of the current Drupal path.
+  $arg = arg();
+
+  $access = FALSE;
+  
+
+  if ($arg[0] == 'page_json' && $arg[1] == variable_get('siteapikey')){
+
+    if (variable_get('siteapikey') != '' and variable_get('siteapikey') != NULL ) {
+
+      if ($node = node_load ($arg[2]) ) {
+
+        // Should be 'Page' content type only and should be published.
+        if ( $node->type == 'page' && ($node->status ==1) ) {
+
+		  // Display JSON data of given node
+		  print drupal_json_output($node);
+		  $access = TRUE;
+	      exit;
+        }		
+      }
+    }
+  }
+
+  // 'Access Denied message'.
+  if ( $access == FALSE) {
+	 //print 'Access Denied';  
+	 drupal_set_message('Access Denied' , 'error');
+  }
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function site_information_form_alter(&$form, &$form_state, $form_id) {
+
+
+	if ($form_id == 'system_site_information_settings') {
+
+		$form['site_api_key'] = array(
+		'#type' => 'textfield', 
+		'#title' => t('Enter Api KEY'), 
+		'#default_value' => variable_get('siteapikey', 'No API Key yet'),
+		'#weight' => 10, 
+		);
+
+        $form['actions']['submit']['#submit'][]='form_submit_site_info';
+		if (variable_get(siteapikey) != NULL ) {
+		 $form['actions']['submit']['#value'] = t('Update Configuration');
+	}
+		
+	}
+	
+	
+}
+
+function form_submit_site_info($form, &$form_state) {
+
+  if ($form_state['values']['site_api_key'] =='No API Key yet'||$form_state['values']['site_api_key']==""){
+	  variable_set('siteapikey', $form_state['values']['site_api_key']);
+	  drupal_set_message('No Site API key set');
+  }
+	else {
+	variable_set('siteapikey', $form_state['values']['site_api_key']);
+	$conf['siteapikey'] ==  $form_state['values']['site_api_key'];
+		
+	drupal_set_message('API key'.variable_get('siteapikey', 'No API Key yet').' is set'); 
+	}	  
+	  
+}
+
